@@ -1,0 +1,20 @@
+@if (showHeader()) {
+  <app-header></app-header>
+}
+@if (spinnerService.isLoading()) {
+  <div class="fixed inset-0 flex items-center justify-center bg-black/40" style="z-index: 99999">
+    <p-progressSpinner strokeWidth="4" styleClass="w-16 h-16" />
+  </div>
+}
+<p-toast></p-toast>
+<main
+  [class.module-shell]="showHeader()"
+  [style.min-height]="showHeader() ? 'calc(100vh - 93px)' : '100vh'"
+  [style.margin-top]="showHeader() ? '93px' : '0'"
+>
+  <div class="module-shell__content">
+    <app-error-boundary>
+      <router-outlet></router-outlet>
+    </app-error-boundary>
+  </div>
+</main>

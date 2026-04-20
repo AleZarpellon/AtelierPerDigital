@@ -1,0 +1,48 @@
+<section class="launcher-shell">
+  <div class="launcher-backdrop"></div>
+
+  <div class="launcher-content">
+    <div class="launcher-hero">
+      <p class="launcher-kicker">AtelierPerDigital</p>
+      <h1>Avvia il modulo che ti serve</h1>
+      <p class="launcher-lead">
+        Seleziona una delle applicazioni qui sotto per iniziare a lavorare.
+      </p>
+    </div>
+
+    <div class="launcher-grid">
+      @for (card of cards(); track card.title) {
+        <button
+          type="button"
+          class="launcher-card"
+          [class.launcher-card--disabled]="!card.available"
+          [class]="card.accentClass"
+          [disabled]="!card.available"
+          (click)="openCard(card.route)"
+        >
+          <div class="launcher-card__top">
+            <span class="launcher-icon">
+              <i [class]="card.icon"></i>
+            </span>
+            <span class="launcher-badge">{{ card.badge }}</span>
+          </div>
+
+          <div class="launcher-card__body">
+            <p class="launcher-card__subtitle">{{ card.subtitle }}</p>
+            <h2>{{ card.title }}</h2>
+            <p>{{ card.description }}</p>
+          </div>
+
+          <div class="launcher-card__footer">
+            <span>{{ card.cta }}</span>
+            <i
+              class="pi"
+              [class.pi-arrow-up-right]="card.available"
+              [class.pi-plus]="!card.available"
+            ></i>
+          </div>
+        </button>
+      }
+    </div>
+  </div>
+</section>

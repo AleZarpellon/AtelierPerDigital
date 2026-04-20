@@ -1,0 +1,34 @@
+:host {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+}
+
+.p-menubar {
+  background: transparent !important;
+  border: none !important;
+  justify-content: center !important;
+  padding: 0 !important;
+}
+
+.header-spacer {
+  width: 132px;
+}
+
+.launcher-link {
+  background: rgba(49, 46, 129, 0.35);
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 768px) {
+  .header-spacer {
+    display: none;
+  }
+
+  .launcher-link {
+    padding-inline: 0.85rem;
+  }
+}
