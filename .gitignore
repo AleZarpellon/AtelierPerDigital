@@ -1,0 +1,20 @@
+FE/node_modules/
+FE/dist/
+FE/release/
+FE/.vscode/
+
+# Java
+BE/target/
+
+# Database
+BE/data.db
+BE/test.db
+BE/data.db-shm
+BE/data.db-wal
+
+# JAR (viene generato dal build)
+FE/resources/app.jar
+FE/package-lock.json
+FE/test.db
+FE/data.db
+
