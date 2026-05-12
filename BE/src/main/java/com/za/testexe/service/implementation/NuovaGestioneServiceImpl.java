@@ -87,19 +87,23 @@ public class NuovaGestioneServiceImpl implements NuovaGestioneService {
         String meseCorrente = LocalDate.now().getMonth().getDisplayName(TextStyle.FULL, Locale.ITALIAN);
         rateRepository.findAll().forEach(r -> {
             boolean annuale = "Annuale".equalsIgnoreCase(r.getPeriodo());
-            boolean meseAnnualeCorrente = r.getMese() != null && r.getMese().equalsIgnoreCase(meseCorrente);
-            boolean deveEssereAttiva = !annuale || meseAnnualeCorrente;
+            boolean attivaPrimaDelRicalcolo = Boolean.TRUE.equals(r.getAttivo());
 
-            r.setAttivo(deveEssereAttiva);
-
-            // Se mancano dati sul piano rate, aggiorniamo comunque solo lo stato attivo.
-            if (r.getNrRateMax() == null || r.getNrRate() == null) {
+            if (annuale) {
+                boolean meseAnnualeCorrente = r.getMese() != null && r.getMese().equalsIgnoreCase(meseCorrente);
+                r.setAttivo(meseAnnualeCorrente);
                 rateRepository.save(r);
                 return;
             }
 
-            // Le annuali non avanzano mai: aggiorniamo solo lo stato attivo.
-            if (annuale) {
+            // Le non annuali disattivate manualmente non avanzano il piano rate.
+            if (!attivaPrimaDelRicalcolo) {
+                rateRepository.save(r);
+                return;
+            }
+
+            // Se mancano dati sul piano rate, aggiorniamo comunque solo lo stato attivo.
+            if (r.getNrRateMax() == null || r.getNrRate() == null) {
                 rateRepository.save(r);
                 return;
             }

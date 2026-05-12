@@ -68,8 +68,8 @@ class NuovaGestioneServiceImplTest {
     }
 
     @Test
-    void nuovaGestione_shouldSetNonAnnualRatesAlwaysActive() {
-        RateEntity rataMensile = RateEntity.builder()
+    void nuovaGestione_shouldNotIncrementDisabledNonAnnualRates() {
+        RateEntity rataMensileDisattivata = RateEntity.builder()
                 .idRate(1)
                 .descrizione("Affitto")
                 .euro(BigDecimal.valueOf(500))
@@ -80,7 +80,7 @@ class NuovaGestioneServiceImplTest {
                 .attivo(false)
                 .build();
 
-        when(rateRepository.findAll()).thenReturn(List.of(rataMensile));
+        when(rateRepository.findAll()).thenReturn(List.of(rataMensileDisattivata));
         when(rateRepository.save(any(RateEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         service.nuovaGestione();
@@ -89,8 +89,30 @@ class NuovaGestioneServiceImplTest {
         verify(rateRepository, atLeastOnce()).save(captor.capture());
         RateEntity salvata = captor.getAllValues().getLast();
 
-        assertTrue(salvata.getAttivo());
-        assertEquals(2, salvata.getNrRate());
+        assertFalse(salvata.getAttivo());
+        assertEquals(1, salvata.getNrRate());
+    }
+
+    @Test
+    void nuovaGestione_shouldIncrementOnlyActiveNonAnnualRates() {
+        RateEntity rataMensileAttiva = RateEntity.builder()
+                .idRate(10)
+                .descrizione("Palestra")
+                .euro(BigDecimal.valueOf(40))
+                .nrRate(2)
+                .nrRateMax(12)
+                .maxValore(BigDecimal.valueOf(400))
+                .periodo("Vicino stipendio")
+                .attivo(true)
+                .build();
+
+        when(rateRepository.findAll()).thenReturn(List.of(rataMensileAttiva));
+        when(rateRepository.save(any(RateEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.nuovaGestione();
+
+        assertEquals(3, rataMensileAttiva.getNrRate());
+        assertTrue(rataMensileAttiva.getAttivo());
     }
 
     @Test
