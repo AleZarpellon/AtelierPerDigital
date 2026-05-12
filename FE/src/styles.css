@@ -238,6 +238,11 @@
   cursor: not-allowed !important;
 }
 
+.error-slot {
+  min-height: 1.25rem;
+  line-height: 1.25rem;
+}
+
 /* select*/
 .p-select {
   background-color: #475569 !important;

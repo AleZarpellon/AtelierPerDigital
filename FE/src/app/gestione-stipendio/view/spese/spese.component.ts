@@ -146,4 +146,12 @@ export class SpeseComponent implements OnInit {
   updateEuroMaxValore() {
     this.form().get('euro')?.setValue(this.form().get('maxValore')?.value);
   }
+
+  showError(controlName: string, errorKey?: string): boolean {
+    const control = this.form().get(controlName);
+    if (!control || !control.touched) return false;
+
+    if (!errorKey) return control.invalid;
+    return !!control.errors?.[errorKey];
+  }
 }

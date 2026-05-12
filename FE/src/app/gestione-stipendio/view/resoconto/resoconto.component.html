@@ -34,15 +34,18 @@
                 type="number"
                 [ngModel]="objStipendioRequest()?.stipendio"
                 (ngModelChange)="objStipendioRequest.update(s => ({...s!, stipendio: $event})); validateStipendioEuro($event)"
+                (blur)="onTouchedStipendioEuro()"
                 class="block h-11 w-full rounded-lg bg-card-hover text-body pl-3 pr-10"
               />
               <i
                 class="pi pi-euro text-amber-400 pointer-events-none absolute top-1/2 right-3 -translate-y-1/2"
               ></i>
             </div>
-            @if (stipendioEuroError()) {
-              <span class="text-red-500 text-sm">{{ stipendioEuroError() }}</span>
-            }
+            <div class="error-slot">
+              @if (stipendioEuroTouched() && stipendioEuroError()) {
+                <span class="text-red-500 text-sm">{{ stipendioEuroError() }}</span>
+              }
+            </div>
           </div>
 
           <!-- Data inizio -->
@@ -52,6 +55,7 @@
               <p-datepicker
                 [ngModel]="objStipendioRequest()?.dataInizio"
                 (ngModelChange)="objStipendioRequest.update(s => ({...s!, dataInizio: $event})); validateStipendioData($event)"
+                (onBlur)="onTouchedStipendioData()"
                 dateFormat="dd/mm/yy"
                 [showIcon]="false"
                 [minDate]="minDate()"
@@ -63,9 +67,11 @@
                 class="pi pi-calendar text-amber-400 pointer-events-none absolute top-1/2 right-3 -translate-y-1/2"
               ></i>
             </div>
-            @if (stipendioDataError()) {
-              <span class="text-red-500 text-sm">{{ stipendioDataError() }}</span>
-            }
+            <div class="error-slot">
+              @if (stipendioDataTouched() && stipendioDataError()) {
+                <span class="text-red-500 text-sm">{{ stipendioDataError() }}</span>
+              }
+            </div>
           </div>
 
           <!-- Bottoni -->
@@ -181,15 +187,18 @@
           type="number"
           [(ngModel)]="spesoInput"
           (ngModelChange)="validateSpeso($event)"
+          (blur)="onTouchedSpeso()"
           class="block h-11 w-full rounded-lg bg-card-hover text-body pl-3 pr-10"
         />
         <i
           class="pi pi-euro text-amber-400 pointer-events-none absolute top-1/2 right-3 -translate-y-1/2"
         ></i>
       </div>
-      @if (spesoError()) {
-        <span class="text-red-500 text-sm">{{ spesoError() }}</span>
-      }
+      <div class="error-slot">
+        @if (spesoTouched() && spesoError()) {
+          <span class="text-red-500 text-sm">{{ spesoError() }}</span>
+        }
+      </div>
     </div>
   </div>
   <ng-template #footer>

@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 public record RateRequest(
-        @NotNull
         Integer idRate,
 
         @NotBlank(message = "Descrizione obbligatoria")
@@ -18,6 +17,8 @@ public record RateRequest(
         Integer nrRate,
         Integer nrRateMax,
         BigDecimal maxValore,
-        @NotBlank(message = "Descrizione obbligatoria")
-        String periodo
+        @NotBlank(message = "Periodo obbligatorio")
+        String periodo,
+        String mese,
+        Boolean attivo
 ) {}

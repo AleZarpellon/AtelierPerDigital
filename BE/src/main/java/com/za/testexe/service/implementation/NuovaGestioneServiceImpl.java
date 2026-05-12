@@ -12,6 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.format.TextStyle;
+import java.util.Locale;
 import java.util.List;
 
 @Service
@@ -81,22 +84,40 @@ public class NuovaGestioneServiceImpl implements NuovaGestioneService {
                 });
 
         // 4 — rate
+        String meseCorrente = LocalDate.now().getMonth().getDisplayName(TextStyle.FULL, Locale.ITALIAN);
         rateRepository.findAll().forEach(r -> {
-            if (r.getNrRateMax() == null || r.getNrRate() == null) return;
-            int nuovoNrRate = (r.getNrRate() != null ? r.getNrRate() : 0) + 1;
+            boolean annuale = "Annuale".equalsIgnoreCase(r.getPeriodo());
+            boolean meseAnnualeCorrente = r.getMese() != null && r.getMese().equalsIgnoreCase(meseCorrente);
+            boolean deveEssereAttiva = !annuale || meseAnnualeCorrente;
 
-            if (r.getNrRateMax() != null && nuovoNrRate > r.getNrRateMax()) {
-                rateRepository.delete(r);
-            } else {
-                r.setNrRate(nuovoNrRate);
-                if (r.getNrRateMax() != null && r.getEuro() != null) {
-                    BigDecimal nuovoMaxValore = BigDecimal.valueOf(r.getNrRateMax() - nuovoNrRate)
-                            .multiply(r.getEuro())
-                            .setScale(2, RoundingMode.HALF_UP);
-                    r.setMaxValore(nuovoMaxValore);
-                }
+            r.setAttivo(deveEssereAttiva);
+
+            // Se mancano dati sul piano rate, aggiorniamo comunque solo lo stato attivo.
+            if (r.getNrRateMax() == null || r.getNrRate() == null) {
                 rateRepository.save(r);
+                return;
             }
+
+            // Le annuali non avanzano mai: aggiorniamo solo lo stato attivo.
+            if (annuale) {
+                rateRepository.save(r);
+                return;
+            }
+
+            int nuovoNrRate = r.getNrRate() + 1;
+            if (nuovoNrRate > r.getNrRateMax()) {
+                rateRepository.delete(r);
+                return;
+            }
+
+            r.setNrRate(nuovoNrRate);
+            if (r.getEuro() != null) {
+                BigDecimal nuovoMaxValore = BigDecimal.valueOf(r.getNrRateMax() - nuovoNrRate)
+                        .multiply(r.getEuro())
+                        .setScale(2, RoundingMode.HALF_UP);
+                r.setMaxValore(nuovoMaxValore);
+            }
+            rateRepository.save(r);
         });
 
         // 5 — stipendio a 0

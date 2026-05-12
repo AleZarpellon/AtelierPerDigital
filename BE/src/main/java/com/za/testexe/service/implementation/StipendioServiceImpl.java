@@ -79,6 +79,7 @@ public class StipendioServiceImpl implements StipendioService {
 
         BigDecimal totRate = rateRepository.findAll()
                 .stream()
+                .filter(r -> Boolean.TRUE.equals(r.getAttivo()))
                 .map(RateEntity::getEuro)
                 .filter(Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

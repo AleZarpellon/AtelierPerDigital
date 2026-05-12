@@ -218,4 +218,12 @@ export class SalvadanaiComponent implements OnInit {
       },
     });
   }
+
+  showError(controlName: string, errorKey?: string): boolean {
+    const control = this.form().get(controlName);
+    if (!control || !control.touched) return false;
+
+    if (!errorKey) return control.invalid;
+    return !!control.errors?.[errorKey];
+  }
 }

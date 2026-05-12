@@ -9,4 +9,5 @@ public interface RateService {
     RateResponse saveRate(RateRequest request);
     List<RateResponse> getRate();
     void deleteRate(Integer idRate);
+    void updateAttivo(Integer idRate, Boolean attivo);
 }

@@ -1,6 +1,5 @@
 package com.za.testexe.model.entity;
 
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,4 +22,11 @@ public class RateEntity {
     private Integer nrRateMax;
     private BigDecimal maxValore;
     private String periodo;
+
+    @Column(nullable = true)
+    private String mese;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean attivo = Boolean.TRUE;
 }

@@ -9,5 +9,7 @@ public record RateResponse(
         Integer nrRate,
         Integer nrRateMax,
         BigDecimal maxValore,
-        String periodo
+        String periodo,
+        String mese,
+        Boolean attivo
 ) {}

@@ -53,7 +53,15 @@ export class RateComponent implements OnInit {
   private toastService = inject(ToastService);
   checkTipeForm = signal<string>('');
   rateList = signal<RateModel[]>([]);
-  cols = signal<string[]>(['descrizione', 'euro', 'rate', 'maxValore', 'periodo', 'azioni']);
+  cols = signal<string[]>([
+    'descrizione',
+    'euro',
+    'rate',
+    'maxValore',
+    'periodo',
+    'disattivo/attivo',
+    'azioni',
+  ]);
   sceltaQuantitavo = signal<string>('nessuna');
   quotaOld = signal<number>(0);
 
@@ -66,26 +74,51 @@ export class RateComponent implements OnInit {
       nrRateMax: [null, positiveIntValidator()],
       maxValore: [null, positiveEuroValidator()],
       periodo: ['', [Validators.required]],
+      mese: [null],
+      attivo: [true],
     }),
   );
   totale = computed<number>(() =>
-    this.rateList().reduce((acc, s) => acc + (Number(s.euro) || 0), 0),
+    this.rateList()
+      .filter((r) => r.attivo)
+      .reduce((acc, s) => acc + (Number(s.euro) || 0), 0),
   );
   totaleInizioMese = computed<number>(() =>
     this.rateList()
-      .filter((r) => r.periodo === 'Inizio mese')
+      .filter((r) => r.periodo === 'Inizio mese' && r.attivo)
       .reduce((acc, r) => acc + (Number(r.euro) || 0), 0),
   );
 
   totaleVicinoStipendio = computed<number>(() =>
     this.rateList()
-      .filter((r) => r.periodo === 'Vicino stipendio')
+      .filter((r) => r.periodo === 'Vicino stipendio' && r.attivo)
+      .reduce((acc, r) => acc + (Number(r.euro) || 0), 0),
+  );
+
+  totaleAnnuali = computed<number>(() =>
+    this.rateList()
+      .filter((r) => r.periodo === 'Annuale' && r.attivo)
       .reduce((acc, r) => acc + (Number(r.euro) || 0), 0),
   );
 
   periodoOptions = [
     { label: 'Inizio mese', value: 'Inizio mese' },
     { label: 'Vicino stipendio', value: 'Vicino stipendio' },
+    { label: 'Annuale', value: 'Annuale' },
+  ];
+  meseOptions = [
+    { label: 'Gennaio', value: 'Gennaio' },
+    { label: 'Febbraio', value: 'Febbraio' },
+    { label: 'Marzo', value: 'Marzo' },
+    { label: 'Aprile', value: 'Aprile' },
+    { label: 'Maggio', value: 'Maggio' },
+    { label: 'Giugno', value: 'Giugno' },
+    { label: 'Luglio', value: 'Luglio' },
+    { label: 'Agosto', value: 'Agosto' },
+    { label: 'Settembre', value: 'Settembre' },
+    { label: 'Ottobre', value: 'Ottobre' },
+    { label: 'Novembre', value: 'Novembre' },
+    { label: 'Dicembre', value: 'Dicembre' },
   ];
   sceltaQuantitavoOptions = [
     { label: 'Nessuna', value: 'nessuna' },
@@ -111,6 +144,32 @@ export class RateComponent implements OnInit {
         if (this.checkTipeForm() === 'modifica') return;
         this.updateMaxValore();
       });
+
+    this.form()
+      .get('periodo')
+      ?.valueChanges.subscribe((periodo) => this.applyPeriodoRules(periodo));
+  }
+
+  applyPeriodoRules(periodo: string | null) {
+    const meseControl = this.form().get('mese');
+    if (!meseControl) return;
+
+    if (periodo === 'Annuale') {
+      meseControl.setValidators([Validators.required]);
+      this.sceltaQuantitavo.set('nessuna');
+      this.form().patchValue(
+        {
+          nrRate: null,
+          nrRateMax: null,
+          maxValore: null,
+        },
+        { emitEvent: false },
+      );
+    } else {
+      meseControl.clearValidators();
+      meseControl.setValue(null, { emitEvent: false });
+    }
+    meseControl.updateValueAndValidity({ emitEvent: false });
   }
 
   updateMaxValore() {
@@ -157,6 +216,8 @@ export class RateComponent implements OnInit {
       nrRateMax: null,
       maxValore: null,
       periodo: '',
+      mese: null,
+      attivo: true,
     });
     this.sceltaQuantitavo.set('nessuna');
   }
@@ -178,7 +239,12 @@ export class RateComponent implements OnInit {
 
   onEdit(objRate: RateModel) {
     this.checkTipeForm.set('modifica');
-    this.form().patchValue(objRate);
+    this.form().patchValue({
+      ...objRate,
+      attivo: objRate.attivo ?? true,
+      mese: objRate.mese ?? null,
+    });
+    this.applyPeriodoRules(objRate.periodo);
     this.gestioneSceltaQuantitativo(objRate);
     if (objRate.maxValore) this.quotaOld.set(objRate.maxValore);
   }
@@ -186,10 +252,36 @@ export class RateComponent implements OnInit {
   onRipristina() {
     const objRate = this.rateList().find((s) => s.idRate === this.form().get('idRate')?.value);
     if (objRate) {
-      this.form().patchValue(objRate);
+      this.form().patchValue({
+        ...objRate,
+        attivo: objRate.attivo ?? true,
+        mese: objRate.mese ?? null,
+      });
+      this.applyPeriodoRules(objRate.periodo);
 
       this.gestioneSceltaQuantitativo(objRate);
     }
+  }
+
+  onToggleAttivo(row: RateModel, value: boolean) {
+    if (!row.idRate) return;
+
+    this.rateService.updateAttivo(row.idRate, value).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.rateList.update((list) =>
+            this.sortByPeriodo(
+              list.map((s) => (s.idRate === row.idRate ? { ...s, attivo: value } : s)),
+            ),
+          );
+          this.toastService.show('success', 'Successo!', res.message);
+        }
+      },
+      error: (err) => {
+        this.toastService.showErrorHttp(err.error?.message || err.message);
+        console.error(err);
+      },
+    });
   }
 
   gestioneSceltaQuantitativo(objRate: RateModel) {
@@ -201,8 +293,14 @@ export class RateComponent implements OnInit {
   }
 
   salva() {
+    this.form().markAllAsTouched();
     if (this.checkForm()) {
-      this.rateService.saveRate(this.form().getRawValue() as RateModel).subscribe({
+      const payload = this.form().getRawValue() as RateModel;
+      if (payload.periodo !== 'Annuale') {
+        payload.mese = null;
+      }
+
+      this.rateService.saveRate(payload).subscribe({
         next: (res) => {
           if (res.success) {
             if (this.checkTipeForm() === 'nuovo')
@@ -243,8 +341,20 @@ export class RateComponent implements OnInit {
     }
   }
 
+  showError(controlName: string, errorKey?: string): boolean {
+    const control = this.form().get(controlName);
+    if (!control || !control.touched) return false;
+
+    if (!errorKey) return control.invalid;
+    return !!control.errors?.[errorKey];
+  }
+
   checkForm(): boolean {
     if (this.form().valid) {
+      if (this.form().get('periodo')?.value === 'Annuale') {
+        return true;
+      }
+
       if (this.sceltaQuantitavo() === 'nessuna') {
         return true;
       } else if (this.sceltaQuantitavo() === 'rate') {
@@ -268,7 +378,15 @@ export class RateComponent implements OnInit {
       next: (res) => {
         if (res.success) {
           this.toastService.show('success', 'Successo!', res.message);
-          this.rateList.set(res.data);
+          this.rateList.set(
+            this.sortByPeriodo(
+              res.data.map((rate) => ({
+                ...rate,
+                attivo: rate.attivo ?? true,
+                mese: rate.mese ?? null,
+              })),
+            ),
+          );
         }
       },
       error: (err) => {
@@ -282,12 +400,36 @@ export class RateComponent implements OnInit {
     const order: Record<string, number> = {
       'Inizio mese': 0,
       'Vicino stipendio': 1,
+      Annuale: 2,
+    };
+
+    const monthOrder: Record<string, number> = {
+      Gennaio: 0,
+      Febbraio: 1,
+      Marzo: 2,
+      Aprile: 3,
+      Maggio: 4,
+      Giugno: 5,
+      Luglio: 6,
+      Agosto: 7,
+      Settembre: 8,
+      Ottobre: 9,
+      Novembre: 10,
+      Dicembre: 11,
     };
 
     return [...list].sort((a, b) => {
       const aOrder = order[a.periodo ?? ''] ?? 2;
       const bOrder = order[b.periodo ?? ''] ?? 2;
-      return aOrder - bOrder;
+      if (aOrder !== bOrder) return aOrder - bOrder;
+
+      if (a.periodo === 'Annuale' && b.periodo === 'Annuale') {
+        const aMonth = monthOrder[a.mese ?? ''] ?? 99;
+        const bMonth = monthOrder[b.mese ?? ''] ?? 99;
+        return aMonth - bMonth;
+      }
+
+      return 0;
     });
   }
 }

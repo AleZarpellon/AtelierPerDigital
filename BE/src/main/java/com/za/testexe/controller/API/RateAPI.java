@@ -46,4 +46,17 @@ public interface RateAPI {
     ResponseEntity<ApiResponse<Void>> deleteRate(
             @Parameter(description = "Id della rata", required = true)
             @PathVariable Integer idRate);
+
+    @PatchMapping("/attivo/{idRate}")
+    @Operation(summary = "Aggiorna stato rata", description = "Aggiorna solo il campo attivo della rata")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Stato attivo aggiornato con successo"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Rata non trovata",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    ResponseEntity<ApiResponse<Void>> updateAttivo(
+            @Parameter(description = "Id della rata", required = true)
+            @PathVariable Integer idRate,
+            @Parameter(description = "Stato attivo della rata", required = true)
+            @RequestParam Boolean attivo);
 }

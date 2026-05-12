@@ -65,6 +65,9 @@ export class ResocontoComponent implements OnInit {
   stipendioEuroError = signal<string>('');
   stipendioDataError = signal<string>('');
   spesoError = signal<string>('');
+  stipendioEuroTouched = signal<boolean>(false);
+  stipendioDataTouched = signal<boolean>(false);
+  spesoTouched = signal<boolean>(false);
 
   ngOnInit(): void {
     forkJoin({
@@ -134,6 +137,8 @@ export class ResocontoComponent implements OnInit {
   }
 
   onRipristinaGestione() {
+    this.stipendioEuroTouched.set(false);
+    this.stipendioDataTouched.set(false);
     const response = this.objStipendioResponse();
     this.objStipendioRequest.set({
       idStipendio: response?.idStipendio ?? null,
@@ -145,6 +150,8 @@ export class ResocontoComponent implements OnInit {
   }
 
   salva() {
+    this.stipendioEuroTouched.set(true);
+    this.stipendioDataTouched.set(true);
     this.validateStipendioEuro(this.objStipendioRequest()?.stipendio);
     this.validateStipendioData(this.objStipendioRequest()?.dataInizio);
     if (this.stipendioEuroError() || this.stipendioDataError()) return;
@@ -196,9 +203,11 @@ export class ResocontoComponent implements OnInit {
     this.dialogSpesoVisible.set(false);
     this.budgetSelezionato.set(null);
     this.spesoInput.set(0);
+    this.spesoTouched.set(false);
   }
 
   onConfermaSpeso() {
+    this.spesoTouched.set(true);
     this.validateSpeso(this.spesoInput());
     if (this.spesoError()) return;
 
@@ -254,5 +263,17 @@ export class ResocontoComponent implements OnInit {
         console.error(err);
       },
     });
+  }
+
+  onTouchedStipendioEuro() {
+    this.stipendioEuroTouched.set(true);
+  }
+
+  onTouchedStipendioData() {
+    this.stipendioDataTouched.set(true);
+  }
+
+  onTouchedSpeso() {
+    this.spesoTouched.set(true);
   }
 }

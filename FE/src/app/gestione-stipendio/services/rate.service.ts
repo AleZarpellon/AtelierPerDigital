@@ -23,4 +23,11 @@ export class RateService {
   deleteRate(idRate: number): Observable<ApiResponse<void>> {
     return this.http.delete<ApiResponse<void>>(`${this.baseUrl}/elimina/${idRate}`);
   }
+
+  updateAttivo(idRate: number, attivo: boolean): Observable<ApiResponse<void>> {
+    return this.http.patch<ApiResponse<void>>(
+      `${this.baseUrl}/attivo/${idRate}?attivo=${attivo}`,
+      {},
+    );
+  }
 }

@@ -35,4 +35,10 @@ public class RateController implements RateAPI {
         rateService.deleteRate(idRate);
         return ResponseEntity.ok(ApiResponse.success("Rata eliminata correttamente"));
     }
+
+    @Override
+    public ResponseEntity<ApiResponse<Void>> updateAttivo(Integer idRate, Boolean attivo) {
+        rateService.updateAttivo(idRate, attivo);
+        return ResponseEntity.ok(ApiResponse.success("Stato attivo aggiornato correttamente"));
+    }
 }

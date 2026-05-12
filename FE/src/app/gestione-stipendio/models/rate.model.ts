@@ -6,4 +6,6 @@ export interface RateModel {
   nrRateMax: number | null;
   maxValore: number | null;
   periodo: string | null;
+  mese: string | null;
+  attivo: boolean;
 }
